@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue</title>
+    <script type="text/javascript" src="lib/other/vue.js"></script>
+    <script type="text/javascript" src="lib/other/jquery.js"></script>
+    <script language="JavaScript">
+
+    $(function () {
+        var vue=new Vue({
+            "el":"#div0",
+            data:{
+                msg:"路明非欢迎你",
+                vname:"fuck man",
+                List:[
+                    {name:"路明非",blood:"S级"},
+                    {name:"楚子航",blood:"A+级"},
+                    {name:"凯撒",blood:"A级"},
+                    {name:"昂热",blood:"S级"}
+                ],
+                num1:1,
+                num2:2,
+                num3:0
+            },
+            methods:{
+                MyTest:function () {
+                     this.msg=this.msg.split("").reverse().join("");
+
+                }
+            },
+            watch:{
+                num1:function (newValue) {
+                    this.num3=parseInt(newValue)+parseInt(this.num2);
+                },
+                num2: function (newValue) {
+                    this.num3=parseInt(this.num1)+parseInt(newValue);
+
+                }
+            }
+
+        })
+    })
+
+    </script>
+</head>
+<body>
+<div id="div0">
+    <span >{{msg}}</span><br>
+    <!--v-bind可以省略 v-bing:value-->
+    <input type="text" :value="vname"><br>
+    <!-- v-model:value :value可以省略 双向绑定 trim去除首位空格 -->
+    <input type="text" v-model.trim="msg"><br>
+    <!--条件标签 v-if和v-else之间不能有其它标签，要不然v-else会不起作用-->
+<!--    <div v-if="msg%2==0" style="width: 200px;height: 200px;border: 1px solid black;background-color: orange"></div>-->
+<!--    <div v-else="msg%2!=0" style="width: 200px;height: 200px;border: 1px solid black;background-color: blue"></div>-->
+
+    <!--不符合条件的话 会在语句中添加display:none属性，上面v-if会使整句代码消失(
+    不出现在控制台)，v-show不会-->
+    <div v-show="msg%2==0" style="width: 200px;height: 200px;border: 1px solid black;background-color: blue"></div>
+
+    <!--v-for使用-->
+    <table cellspacing="0" cellpadding="4" border="1" width="400">
+        <tr>
+            <th>姓名</th>
+            <th>血统</th>
+        </tr>
+        <tr v-for="list in List">
+            <td>{{list.name}}</td>
+            <td>{{list.blood}}</td>
+        </tr>
+    </table>
+
+    <!--v-on使用 v-on:可以被替换成@-->
+<!--    <input type="button" v-on:click="MyTest" value="反转">-->
+    <input type="button" @click="MyTest" value="反转">
+    <hr>
+
+    <input type="text" v-model="num1">+
+    <input type="text" v-model="num2">=
+    <input type="text" v-model="num3">
+
+</div>
+</body>
+</html>

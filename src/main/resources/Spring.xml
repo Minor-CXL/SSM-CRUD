@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--  Spring配置  -->
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+
+    <!--  数据源  -->
+    <bean id="PoolDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"></property>
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="user" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+    <!--  整合MyBatis  -->
+    <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="PoolDataSource"></property>
+        <property name="configLocation" value="classpath:myBatis-config.xml"></property>
+        <property name="mapperLocations" value="classpath:com/Dragon/Kassel/mapper/*.xml"></property>
+    </bean>
+
+    <!--把mapper接口给注入到ioc中-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.Dragon.Kassel.mapper"></property>
+    </bean>
+
+    <!-- 配置SqlSession -->
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg name="sqlSessionFactory" ref="sessionFactory"></constructor-arg>
+        <constructor-arg name="executorType" value="BATCH"></constructor-arg>
+    </bean>
+
+</beans>

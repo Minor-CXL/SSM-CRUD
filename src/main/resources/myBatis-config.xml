@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/><!--将_后一个字母转换成大写-->
+        <setting name="lazyLoadingEnabled" value="true"/> <!--延迟加载,没用到的就不加载-->
+    </settings>
+
+    <!--给全路径类起别名且无大小写之分，不写alias默认类名-->
+    <typeAliases>
+        <package name="com.Dragon.Kassel.pro"/>
+    </typeAliases>
+
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <!--  分页合理化  -->
+            <property name="reasonable" value="true"/>
+        </plugin>
+    </plugins>
+</configuration>
+

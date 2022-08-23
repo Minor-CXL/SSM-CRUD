@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+    <script type="text/javascript" th:src="@{/lib/jquery.js}"></script>
+    <script type="text/javascript" th:src="@{/lib/axios.min.js}"></script>
+    <script type="text/javascript" th:src="@{/lib/vue.js}"></script>
+    <link th:href="@{/lib/bootstrap-3.4.1-dist/bootstrap-3.4.1-dist/css/bootstrap.min.css}" rel="stylesheet">
+    <script th:src="@{/lib/bootstrap-3.4.1-dist/bootstrap-3.4.1-dist/js/bootstrap.min.js}"></script>
+    <script>
+
+
+        function select(value,vue){
+            vue.lists=value.data.extend.info.list
+            vue.pageNum=value.data.extend.info.pageNum
+            vue.pageSum=value.data.extend.info.pages
+            vue.total=value.data.extend.info.total
+            vue.NavigationBar=value.data.extend.info.navigatepageNums
+            vue.isFirstPage=value.data.extend.info.isFirstPage
+            vue.isLastPage=value.data.extend.info.isLastPage
+        }
+
+        function add(vue){
+            vue.pageNum+=1;
+        }
+
+        function reduce(vue){
+            vue.pageNum-=1;
+        }
+
+        function first(vue){
+            vue.pageNum=1;
+        }
+
+        function last(vue){
+            vue.pageNum=vue.pageSum;
+        }
+        function change(vue,page) {
+                vue.pageNum=page
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container" id="div0">
+           <div class="row">
+               <div class="col-md-8"><h1>SSM-CRUD</h1></div>
+           </div>
+            <div class="row" id="div1">
+                <div class="col-md-4 col-md-offset-8">
+                    <button class="btn btn-primary" id="addBtn">新增</button>
+                    <button class="btn btn-danger">删除</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-hover">
+                        <tr>
+                            <th>ID</th>
+                            <th>姓名</th>
+                            <th>血统</th>
+                            <th>部门</th>
+                            <th>操作</th>
+                        </tr>
+                        <tr v-for="list in lists">
+                            <td>{{list.sId}}</td>
+                            <td>{{list.sName}}</td>
+                            <td>{{list.sBlood}}</td>
+                            <td>{{list.sDep}}</td>
+                            <td>
+                                <button class="btn btn-primary" onclick="update()" @click="selectName(list.sName)">编辑
+                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                </button>
+                                <button class="btn btn-danger"  @click="selectName2(list.sName)">删除
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <span>当前第{{pageNum}}页,总共{{pageSum}}页,总共{{total}}条</span>
+                </div>
+                <div class="col-md-6">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination" >
+                            <li v-if="isFirstPage==true" class="disabled">
+                                <a  @click="ajax" onclick="first(vue)" >首页</a>
+                            <li v-else="isFirstPage==false">
+                                <a th:href="@{/Select}" @click="ajax" onclick="first(vue)" aria-label="Previous" >首页</a>
+                            </li>
+
+                            <li v-if="isFirstPage==true" class="disabled">
+                                <a  aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            <li v-if="isFirstPage==false">
+                                <a th:href="@{/Select}" @click="ajax" onclick="reduce(vue)" aria-label="Previous" >
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <li v-for="page in NavigationBar" v-if="pageNum==page"  class="active">
+                                <a >{{page}}</a>
+                            <li v-else="pageNum!=page">
+                                <a  @click="fn(page)">{{page}}</a>
+                            </li>
+
+                            <li v-if="isLastPage==true" class="disabled">
+                                <a  aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            <li v-else="isLastPage!=true">
+                                <a th:href="@{/Select}" aria-label="Next" onclick="add(vue)" @click="ajax">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+
+                            <li v-if="isLastPage==true" class="disabled">
+                                <a  @click="ajax" onclick="last(vue)" aria-label="Next">末页</a>
+                            <li v-else="isLastPage!=true">
+                                <a  aria-label="Next" th:href="@{/Select}" @click="ajax" onclick="last(vue)">末页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+        </div>
+        <!--静态模态框  新增-->
+        <div class="modal fade" tabindex="-1" role="dialog" id="staticModel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">新增学生信息填写</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal">
+
+                            <div class="form-group">
+                                <label for="inputEmail3" class="col-sm-2 control-label">姓名</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" id="inputEmail2" placeholder="路明非" name="sName" onblur="checkName()" >
+                                    <span id="helpBlock2" class="help-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inputEmail3" class="col-sm-2 control-label">血统</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" id="inputEmail3" placeholder="S级" name="sBlood" onblur="checkBlood()" >
+                                    <span id="helpBlock3" class="help-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inputEmail3" class="col-sm-2 control-label">部门</label>
+                                <div class="col-sm-5">
+                                    <select class="form-control" name="sDep">
+                                        <option v-for="list in deptList">{{list.sDept}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveStu()" >保存</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+
+    <!--静态模态框  修改-->
+    <div class="modal fade" tabindex="-1" role="dialog" id="updateModel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改学生信息</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">姓名</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static">{{updateName}}</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEmail3" class="col-sm-2 control-label">血统</label>
+                            <div class="col-sm-10">
+                                <input type="email" class="form-control" id="inputEmail4" placeholder="S级" name="sBlood" onblur="checkBloodTwo()" >
+                                <span id="helpBlock4" class="help-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEmail3" class="col-sm-2 control-label">部门</label>
+                            <div class="col-sm-5">
+                                <select class="form-control" name="sDep" id="dept">
+                                    <option v-for="list in deptList">{{list.sDept}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="saveBtn_2" onclick="saveStuTwo()" >保存</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    </div>
+<script>
+//  放后面加载才有效果
+    var vue=new Vue({
+        "el":"#div0",
+        data:{
+            lists:"",
+            pageNum:"1",
+            pageSum:"",
+            total:"",
+            NavigationBar:"",
+            searchPage:"",
+            isFirstPage:"",
+            isLastPage:"",
+            isSelect:"",
+            deptList:"",
+            updateName:"",
+            updateBlood:"",
+            updateDep:""
+        },
+        methods:{
+            ajax:function (e) {
+                axios({
+                    methods:"POST",
+                    url:"Select",
+                    params:{
+                        pn:vue.pageNum
+                    }
+                }).then(function (value) {
+                    select(value,vue)
+                }).catch()
+                e.preventDefault()
+            },
+            fn:function (e) {
+                vue.pageNum=e.toString();
+                axios({
+                    methods:"POST",
+                    url:"Select",
+                    params:{
+                        pn:vue.pageNum
+                    }
+                }).then(function (value) {
+                    select(value,vue)
+                }).catch()
+            },
+            selectName:function (e) {
+                vue.updateName=e.toString()
+
+            },
+            selectName2:function (e) {
+                axios({
+                    methods:"POST",
+                    url:"Delete",
+                    params:{
+                        dName:e.toString()
+                    }
+                }).then(function (value) {
+                    alert("学生信息删除成功")
+                }).catch()
+            }
+        }
+    })
+
+    //进入这个页面就直接访问ajax
+    $(function () {
+        $.ajax({
+            url:"Select",
+            type:"POST",
+            success:function(value){
+
+                vue.lists=value.extend.info.list
+                vue.pageNum=value.extend.info.pageNum
+                vue.pageSum=value.extend.info.pages
+                vue.total=value.extend.info.total
+                vue.NavigationBar=value.extend.info.navigatepageNums
+                vue.isFirstPage=value.extend.info.isFirstPage
+                vue.isLastPage=value.extend.info.isLastPage
+
+            }
+        });
+    })
+
+    //模拟框 新增
+    $("#addBtn").click(function () {
+            $("#staticModel").modal({
+                backdrop:"static"
+            })
+        getDept()
+
+    })
+
+    //模拟框 修改
+    function update() {
+        $("#updateModel").modal({
+            backdrop:"static"
+        })
+        getDept()
+    }
+
+    function getDept() {
+        $.ajax({
+            url:"Dept",
+            data:{pn:1},
+            type:"POST",
+            success:function(value){
+                vue.deptList=value.extend.info
+            }
+        });
+    }
+
+    function saveStu() {
+
+        if(!conditionBlood|!conditionName)
+        {
+            alert("请将信息填写正确")
+            return
+        }
+
+        $.ajax({
+            url:"Add",
+            data:$("#staticModel form").serialize(),
+            type:"POST",
+            success:function(value){
+                $("#staticModel").modal('hide')
+                alert("学生信息已添加")
+                $("#inputEmail3").val("")
+                $("#inputEmail2").val("")
+            }
+        });
+
+    }
+
+    function saveStuTwo() {
+
+        if(!conditionBloodTwo)
+        {
+            alert("请将信息填写正确")
+            return
+        }
+
+        $.ajax({
+            url:"update",
+            data:{'sBlood':$("#inputEmail4").val(),
+                'sDep':$("#dept option:selected").val(),
+            'sName':vue.updateName},
+            type:"POST",
+            success:function(value){
+                $("#updateModel").modal('hide')
+                alert("学生信息已修改")
+                $("#inputEmail4").val("")
+
+            }
+        });
+
+    }
+
+
+
+
+    var conditionBlood;
+    var conditionName;
+    var conditionBloodTwo;
+
+    function checkBlood() {
+        var blood = $("#inputEmail3").val()
+        var testBlood = /[A-Z]\W级|[A-Z]级|无|未知|龙王/
+        $("#inputEmail3").parent().removeClass("has-error has-success")
+        if (!testBlood.test(blood)) {
+            $("#inputEmail3").parent().addClass("has-error")
+            $("#helpBlock3").text("血统信息填写错误")
+            conditionBlood = false
+            return
+        } else {
+            $("#inputEmail3").parent().addClass("has-success")
+            $("#helpBlock3").text("")
+            conditionBlood = true
+        }
+    }
+
+    function checkBloodTwo() {
+        var blood=$("#inputEmail4").val()
+        var testBlood= /[A-Z]\W级|[A-Z]级|无|未知|龙王/
+        $("#inputEmail4").parent().removeClass("has-error has-success")
+        if(!testBlood.test(blood))
+        {
+            $("#inputEmail4").parent().addClass("has-error")
+            $("#helpBlock4").text("血统信息填写错误")
+            conditionBloodTwo = false
+
+            return
+        }
+        else
+        {
+            $("#inputEmail4").parent().addClass("has-success")
+            $("#helpBlock4").text("")
+            conditionBloodTwo = true
+
+        }
+
+        }
+
+    function checkName() {
+        var name=$("#inputEmail2").val()
+        $("#inputEmail2").parent().removeClass("has-error has-success")
+
+        if(name=="")
+        {
+            $("#inputEmail2").parent().addClass("has-error")
+            $("#helpBlock2").text("必填项")
+            conditionName=false
+            return
+        }
+        else if(name!="")
+        {
+            $.ajax({
+                url:"checkName",
+                data:{name:name},
+                type:"POST",
+                success:function(value){
+                    if(value.code==200){
+                        $("#inputEmail2").parent().addClass("has-error")
+                        $("#helpBlock2").text("该学生的学生信息已存在")
+                        conditionName=false
+                        return
+                    }
+                }
+            });
+
+        }
+
+
+            $("#inputEmail2").parent().addClass("has-success")
+            $("#helpBlock2").text("")
+            conditionName=true
+    }
+
+
+</script>
+</body>
+
+</html>
